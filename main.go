@@ -40,7 +40,12 @@ func connectToDB() {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+
+		}
+	}(db)
 	err = db.Ping()
 	if err != nil {
 		panic(err)

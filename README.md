@@ -1,6 +1,6 @@
 ## Running the application
 ```
-bash run.sh
+docker-compose up --build
 ```
 ### Params for ```.env``` file
 ```

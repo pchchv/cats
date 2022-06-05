@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  postgres:
+    container_name: postgres
+    build: ./
+    image: docker.io/yzh44yzh/wg_forge_backend_env:1.1
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: go run .
