@@ -1,13 +1,8 @@
-## Running the environment
-Download docker image of PostgreSQL
+## Running the application
 ```
-docker pull yzh44yzh/wg_forge_backend_env:1.1
+bash run.sh
 ```
-Run it
-```
-docker run -p 5432:5432 -d yzh44yzh/wg_forge_backend_env:1.1
-```
-Params for ```.env``` file
+### Params for ```.env``` file
 ```
 HOST=localhost
 PORT=5432

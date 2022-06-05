@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"os"
 )
@@ -22,15 +24,30 @@ func getEnvValue(v string) string {
 	return value
 }
 
-func main() {
+func connectToDB() {
 	host := getEnvValue("HOST")
 	port := getEnvValue("PORT")
 	dbname := getEnvValue("DBNAME")
-	username := getEnvValue("USERNAME")
+	user := getEnvValue("USERNAME")
 	password := getEnvValue("PASSWORD")
-	fmt.Println(host)
-	fmt.Println(port)
-	fmt.Println(dbname)
-	fmt.Println(username)
-	fmt.Println(password)
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host,
+		port,
+		user,
+		password,
+		dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	log.Println("Connected to Postgres")
+}
+
+func main() {
+	connectToDB()
 }
