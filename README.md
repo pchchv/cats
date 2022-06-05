@@ -7,11 +7,11 @@ Run it
 ```
 docker run -p 5432:5432 -d yzh44yzh/wg_forge_backend_env:1.1
 ```
-Params
+Params for ```.env``` file
 ```
-host: localhost
-port: 5432
-dbname: wg_forge_db
-username: wg_forge
-password: 42a
+HOST=localhost
+PORT=5432
+DBNAME=wg_forge_db
+USERNAME=wg_forge
+PASSWORD=42a
 ```
