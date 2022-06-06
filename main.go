@@ -67,6 +67,10 @@ func closeConnect(db *sql.DB) {
 	log.Println("Connections are closed")
 }
 
+func getData() {
+
+}
+
 func main() {
 	db := connectToDB()
 	defer closeConnect(db)
@@ -97,5 +101,14 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(catsColorsCounter)
+	for _, val := range catsColorsCounter {
+		var color = val.color
+		var count = fmt.Sprint(val.count)
+		_, err := db.Exec("Insert into cat_colors_info (color, count) values ($1, $2)",
+			color,
+			count)
+		if err != nil {
+			log.Panic(err)
+		}
+	}
 }
