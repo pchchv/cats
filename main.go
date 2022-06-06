@@ -9,6 +9,13 @@ import (
 	"os"
 )
 
+type cat struct {
+	name           string
+	color          string
+	tailLength     int
+	whiskersLength int
+}
+
 func init() {
 	// Load values from .env into the system
 	if err := godotenv.Load(); err != nil {
@@ -24,7 +31,7 @@ func getEnvValue(v string) string {
 	return value
 }
 
-func connectToDB() {
+func connectToDB() *sql.DB {
 	host := getEnvValue("HOST")
 	port := getEnvValue("PORT")
 	dbname := getEnvValue("DBNAME")
@@ -38,21 +45,40 @@ func connectToDB() {
 		dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-
-		}
-	}(db)
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	log.Println("Connected to Postgres")
+	return db
+}
+
+func closeConnect(db *sql.DB) {
+	err := db.Close()
+	if err != nil {
+	}
+	log.Println("Connections are closed")
 }
 
 func main() {
-	connectToDB()
+	db := connectToDB()
+	defer closeConnect(db)
+	rows, err := db.Query("select * from cats")
+	if err != nil {
+		log.Panic(err)
+	}
+	defer rows.Close()
+	var cats []cat
+	for rows.Next() {
+		p := cat{}
+		err := rows.Scan(&p.name, &p.color, &p.tailLength, &p.whiskersLength)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		cats = append(cats, p)
+	}
+	fmt.Println(cats)
 }
