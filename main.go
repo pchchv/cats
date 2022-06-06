@@ -16,6 +16,11 @@ type cat struct {
 	whiskersLength int
 }
 
+type catsColors struct {
+	color string
+	count int
+}
+
 func init() {
 	// Load values from .env into the system
 	if err := godotenv.Load(); err != nil {
@@ -70,15 +75,27 @@ func main() {
 		log.Panic(err)
 	}
 	defer rows.Close()
-	var cats []cat
+	var catsColorsCounter []catsColors
 	for rows.Next() {
 		p := cat{}
 		err := rows.Scan(&p.name, &p.color, &p.tailLength, &p.whiskersLength)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
-		cats = append(cats, p)
+		if len(catsColorsCounter) == 0 {
+			catsColorsCounter = append(catsColorsCounter, catsColors{p.color, 1})
+		} else {
+			for i, val := range catsColorsCounter {
+				if val.color == p.color {
+					catsColorsCounter[i].count = val.count + 1
+					break
+				}
+				if i == len(catsColorsCounter)-1 {
+					catsColorsCounter = append(catsColorsCounter, catsColors{p.color, 1})
+				}
+			}
+		}
 	}
-	fmt.Println(cats)
+	fmt.Println(catsColorsCounter)
 }
