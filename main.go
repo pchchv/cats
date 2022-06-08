@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"os"
+	"sort"
 )
 
 type cat struct {
@@ -19,6 +20,15 @@ type cat struct {
 type catsColors struct {
 	color string
 	count int
+}
+
+type catsStat struct {
+	tailLengthMean       float64
+	tailLengthMedian     float64
+	tailLengthMode       []int
+	whiskersLengthMean   float64
+	whiskersLengthMedian float64
+	whiskersLengthMode   []int
 }
 
 func init() {
@@ -67,12 +77,14 @@ func closeConnect(db *sql.DB) {
 	log.Println("Connections are closed")
 }
 
-func colors(db *sql.DB) {
+func getData(db *sql.DB) {
 	rows, err := db.Query("select * from cats")
 	if err != nil {
 		log.Panic(err)
 	}
 	var catsColorsCounter []catsColors
+	var tailsLengths []int
+	var whiskersLengths []int
 	for rows.Next() {
 		p := cat{}
 		err := rows.Scan(&p.name, &p.color, &p.tailLength, &p.whiskersLength)
@@ -93,7 +105,14 @@ func colors(db *sql.DB) {
 				}
 			}
 		}
+		tailsLengths = append(tailsLengths, p.tailLength)
+		whiskersLengths = append(whiskersLengths, p.whiskersLength)
 	}
+	colors(catsColorsCounter, db)
+	stats(tailsLengths, whiskersLengths, db)
+}
+
+func colors(catsColorsCounter []catsColors, db *sql.DB) {
 	for _, val := range catsColorsCounter {
 		var color = val.color
 		var count = fmt.Sprint(val.count)
@@ -106,9 +125,72 @@ func colors(db *sql.DB) {
 	}
 }
 
+func stats(tailsLengths []int, whiskersLengths []int, db *sql.DB) {
+	sort.Ints(tailsLengths)
+	sort.Ints(whiskersLengths)
+	tailLengthMean := means(tailsLengths)
+	tailLengthMedian := medians(tailsLengths)
+	tailLengthMode := modes(tailsLengths)
+	whiskersLengthMean := means(whiskersLengths)
+	whiskersLengthMedian := medians(whiskersLengths)
+	whiskersLengthMode := modes(tailsLengths)
+	/* PostgreSQL unsupported []int type. Need fix
+	_, err := db.Exec("Insert into cats_stat (tailLengthMean,"+
+		"tailLengthMedian,"+
+		"tailLengthMode,"+
+		"whiskersLengthMean,"+
+		"whiskersLengthMedian,"+
+		"whiskersLengthMode)"+
+		"values ($1, $2, $3, $4, $5, $6)",
+		tailLengthMean,
+		tailLengthMedian,
+		tailLengthMode,
+		whiskersLengthMean,
+		whiskersLengthMedian,
+		whiskersLengthMode)
+	if err != nil {
+		log.Panic(err)
+	}*/
+}
+
+func means(lengths []int) float64 {
+	var mean float64
+	for _, val := range lengths {
+		mean += float64(val)
+	}
+	return mean / 2
+}
+
+func medians(lengths []int) float64 {
+	var median float64
+	if len(lengths)%2 == 0 {
+		median = float64((lengths[(len(lengths)%2)-1] + lengths[(len(lengths)%2)]) / 2)
+	} else {
+		median = float64(lengths[(len(lengths) % 2)])
+	}
+	return median
+}
+
+func modes(lengths []int) []int {
+	var mode []int
+	modeMap := make(map[int]int)
+	for _, l := range lengths {
+		modeMap[l]++
+	}
+	max := 0
+	for l, num := range mode {
+		if num > max {
+			mode = []int{l}
+		} else if num == max {
+			mode = append(mode, l)
+		}
+	}
+	return mode
+}
+
 func main() {
 	db := connectToDB()
 	defer closeConnect(db)
-	colors(db)
+	getData(db)
 	fmt.Println(testColors(db))
 }
