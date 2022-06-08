@@ -67,18 +67,11 @@ func closeConnect(db *sql.DB) {
 	log.Println("Connections are closed")
 }
 
-func getData() {
-
-}
-
-func main() {
-	db := connectToDB()
-	defer closeConnect(db)
+func colors(db *sql.DB) {
 	rows, err := db.Query("select * from cats")
 	if err != nil {
 		log.Panic(err)
 	}
-	defer rows.Close()
 	var catsColorsCounter []catsColors
 	for rows.Next() {
 		p := cat{}
@@ -111,4 +104,11 @@ func main() {
 			log.Panic(err)
 		}
 	}
+}
+
+func main() {
+	db := connectToDB()
+	defer closeConnect(db)
+	colors(db)
+	fmt.Println(testColors(db))
 }
