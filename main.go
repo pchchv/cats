@@ -2,9 +2,10 @@ package main
 
 import (
 	"database/sql"
+
 	"fmt"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"log"
 	"os"
 	"sort"
@@ -20,15 +21,6 @@ type cat struct {
 type catsColors struct {
 	color string
 	count int
-}
-
-type catsStat struct {
-	tailLengthMean       float64
-	tailLengthMedian     float64
-	tailLengthMode       []int
-	whiskersLengthMean   float64
-	whiskersLengthMedian float64
-	whiskersLengthMode   []int
 }
 
 func init() {
@@ -133,24 +125,24 @@ func stats(tailsLengths []int, whiskersLengths []int, db *sql.DB) {
 	tailLengthMode := modes(tailsLengths)
 	whiskersLengthMean := means(whiskersLengths)
 	whiskersLengthMedian := medians(whiskersLengths)
-	whiskersLengthMode := modes(tailsLengths)
-	/* PostgreSQL unsupported []int type. Need fix
-	_, err := db.Exec("Insert into cats_stat (tailLengthMean,"+
-		"tailLengthMedian,"+
-		"tailLengthMode,"+
-		"whiskersLengthMean,"+
-		"whiskersLengthMedian,"+
-		"whiskersLengthMode)"+
+	whiskersLengthMode := modes(whiskersLengths)
+	_, err := db.Exec("Insert into cats_stat ("+
+		"tail_length_mean,"+
+		"tail_length_median,"+
+		"tail_length_mode,"+
+		"whiskers_length_mean,"+
+		"whiskers_length_median,"+
+		"whiskers_length_mode)"+
 		"values ($1, $2, $3, $4, $5, $6)",
 		tailLengthMean,
 		tailLengthMedian,
-		tailLengthMode,
+		pq.Array(tailLengthMode),
 		whiskersLengthMean,
 		whiskersLengthMedian,
-		whiskersLengthMode)
+		pq.Array(whiskersLengthMode))
 	if err != nil {
 		log.Panic(err)
-	}*/
+	}
 }
 
 func means(lengths []int) float64 {
@@ -178,7 +170,7 @@ func modes(lengths []int) []int {
 		modeMap[l]++
 	}
 	max := 0
-	for l, num := range mode {
+	for l, num := range modeMap {
 		if num > max {
 			mode = []int{l}
 		} else if num == max {
