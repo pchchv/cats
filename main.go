@@ -79,6 +79,9 @@ func closeConnect(db *sql.DB) {
 }
 
 func getData(db *sql.DB) {
+	/*
+		Gets data from the PostgreSQL and runs the functions that process them
+	*/
 	rows, err := db.Query("select * from cats")
 	if err != nil {
 		log.Panic(err)
@@ -109,6 +112,7 @@ func getData(db *sql.DB) {
 		tailsLengths = append(tailsLengths, p.tailLength)
 		whiskersLengths = append(whiskersLengths, p.whiskersLength)
 	}
+	// Write the result to the db
 	colors(catsColorsCounter, db)
 	stats(tailsLengths, whiskersLengths, db)
 }
@@ -145,7 +149,7 @@ func stats(tailsLengths []int, whiskersLengths []int, db *sql.DB) {
 		"values ($1, $2, $3, $4, $5, $6)",
 		tailLengthMean,
 		tailLengthMedian,
-		pq.Array(tailLengthMode),
+		pq.Array(tailLengthMode), // The sql package does not yet support golang arrays. The pq.Array() function solves this problem
 		whiskersLengthMean,
 		whiskersLengthMedian,
 		pq.Array(whiskersLengthMode))
@@ -155,6 +159,10 @@ func stats(tailsLengths []int, whiskersLengths []int, db *sql.DB) {
 }
 
 func means(lengths []int) float64 {
+	/*
+		The mean of a set of numbers, sometimes simply called the average,
+		is the sum of the data divided by the total number of data.
+	*/
 	var mean float64
 	for _, val := range lengths {
 		mean += float64(val)
@@ -163,6 +171,10 @@ func means(lengths []int) float64 {
 }
 
 func medians(lengths []int) float64 {
+	/*
+		The median of a set of numbers is the average number in the sorted set or, if there is an even number of data,
+		the median is the average of the two average numbers.
+	*/
 	var median float64
 	if len(lengths)%2 == 0 {
 		median = float64((lengths[(len(lengths)%2)-1] + lengths[(len(lengths)%2)]) / 2)
@@ -173,6 +185,9 @@ func medians(lengths []int) float64 {
 }
 
 func modes(lengths []int) []int {
+	/*
+		The mode of a set of numbers is the number which occurs most often.
+	*/
 	var mode []int
 	modeMap := make(map[int]int)
 	for _, l := range lengths {
