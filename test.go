@@ -22,3 +22,27 @@ func testColors(db *sql.DB) []catsColors {
 	}
 	return colors
 }
+
+func testStatistics(db *sql.DB) []catsStats {
+	rows, err := db.Query("select * from cats_stat")
+	if err != nil {
+		log.Panic(err)
+	}
+	var stats []catsStats
+	for rows.Next() {
+		p := catsStats{}
+		err := rows.Scan(
+			&p.tailLengthMean,
+			&p.tailLengthMedian,
+			&p.tailLengthMode,
+			&p.whiskersLengthMean,
+			&p.whiskersLengthMedian,
+			&p.whiskersLengthMode)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		stats = append(stats, p)
+	}
+	return stats
+}

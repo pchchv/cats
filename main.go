@@ -23,6 +23,15 @@ type catsColors struct {
 	count int
 }
 
+type catsStats struct {
+	tailLengthMean       float64
+	tailLengthMedian     float64
+	tailLengthMode       []uint8
+	whiskersLengthMean   float64
+	whiskersLengthMedian float64
+	whiskersLengthMode   []uint8
+}
+
 func init() {
 	// Load values from .env into the system
 	if err := godotenv.Load(); err != nil {
@@ -184,5 +193,6 @@ func main() {
 	db := connectToDB()
 	defer closeConnect(db)
 	getData(db)
-	fmt.Println(testColors(db))
+	log.Println(testColors(db))
+	log.Println(testStatistics(db))
 }
