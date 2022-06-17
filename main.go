@@ -2,20 +2,21 @@ package main
 
 import (
 	"database/sql"
-
+	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
-	"github.com/lib/pq"
+	_ "github.com/lib/pq"
 	"log"
+	"net/http"
 	"os"
 	"sort"
 )
 
 type cat struct {
-	name           string
-	color          string
-	tailLength     int
-	whiskersLength int
+	name           string `json:"Name"`
+	color          string `json:"Color"`
+	tailLength     int    `json:"Taillength"`
+	whiskersLength int    `json:"WhiskersLength"`
 }
 
 type catsColors struct {
@@ -31,6 +32,8 @@ type catsStats struct {
 	whiskersLengthMedian float64
 	whiskersLengthMode   []uint8
 }
+
+var database *sql.DB
 
 func init() {
 	// Load values from .env into the system
@@ -112,9 +115,28 @@ func getData(db *sql.DB) {
 		tailsLengths = append(tailsLengths, p.tailLength)
 		whiskersLengths = append(whiskersLengths, p.whiskersLength)
 	}
+	log.Println(catsColorsCounter)
 	// Write the result to the db
 	colors(catsColorsCounter, db)
 	stats(tailsLengths, whiskersLengths, db)
+}
+
+func getCats(db *sql.DB) []cat {
+	rows, err := db.Query("select * from cats")
+	if err != nil {
+		log.Panic(err)
+	}
+	var cats []cat
+	for rows.Next() {
+		p := cat{}
+		err := rows.Scan(&p.name, &p.color, &p.tailLength, &p.whiskersLength)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		cats = append(cats, p)
+	}
+	return cats
 }
 
 func colors(catsColorsCounter []catsColors, db *sql.DB) {
@@ -204,11 +226,35 @@ func modes(lengths []int) []int {
 	return mode
 }
 
+func ping(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, "Cats Service. Version 0.1\n")
+}
+
+func cats(w http.ResponseWriter, req *http.Request) {
+	catsList := getCats(database)
+	/*for _, cat := range catsList {
+		c, err := json.Marshal(cat)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Panic(err)
+		}
+	}*/
+	jsonCats, err := json.Marshal(catsList)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Panic(err)
+	}
+	w.Write(jsonCats)
+}
+
 func main() {
 	db := connectToDB()
 	defer closeConnect(db)
 	getData(db)
 	log.Println(testColors(db))
 	log.Println(testStatistics(db))
-	server()
+	log.Println("Server started")
+	http.HandleFunc("/ping", ping)
+	http.HandleFunc("/cats", cats)
+	log.Fatal(http.ListenAndServe("localhost:8080", nil))
 }
