@@ -210,4 +210,5 @@ func main() {
 	getData(db)
 	log.Println(testColors(db))
 	log.Println(testStatistics(db))
+	server()
 }
