@@ -64,14 +64,27 @@ func connectToDB() *sql.DB {
 		dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		log.Panic(err)
+		log.Printf("PostgreSQL not connected!\nError: %v", err)
 	}
-	err = db.Ping()
-	if err != nil {
-		log.Panic(err)
+	return db
+}
+
+func pingDB(db *sql.DB) {
+	/*
+		Checks the connection to the database. If there is no connection, it initializes a new attempt.
+		After 15 attempts, generates a Panic.
+	*/
+	for i := 0; i <= 16; i++ {
+		err := db.Ping()
+		if err != nil {
+			if i == 16 {
+				log.Panic(err)
+			}
+			log.Println("Try reconnect..")
+			connectToDB()
+		}
 	}
 	log.Println("Connected to Postgres")
-	return db
 }
 
 func closeConnect(db *sql.DB) {
@@ -250,6 +263,7 @@ func cats(w http.ResponseWriter, req *http.Request) {
 func main() {
 	db := connectToDB()
 	defer closeConnect(db)
+	pingDB(db)
 	getData(db)
 	log.Println(testColors(db))
 	log.Println(testStatistics(db))
