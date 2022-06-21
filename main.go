@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -13,10 +14,10 @@ import (
 )
 
 type cat struct {
-	name           string `json:"name"`
-	color          string `json:"color"`
-	tailLength     int    `json:"tail_length"`
-	whiskersLength int    `json:"whiskers_length"`
+	Name           string `json:"name"`
+	Color          string `json:"color"`
+	TailLength     int    `json:"tail_length"`
+	WhiskersLength int    `json:"whiskers_length"`
 }
 
 type catsColors struct {
@@ -109,26 +110,26 @@ func getData(db *sql.DB) {
 	var whiskersLengths []int
 	for rows.Next() {
 		p := cat{}
-		err := rows.Scan(&p.name, &p.color, &p.tailLength, &p.whiskersLength)
+		err := rows.Scan(&p.Name, &p.Color, &p.TailLength, &p.WhiskersLength)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 		if len(catsColorsCounter) == 0 {
-			catsColorsCounter = append(catsColorsCounter, catsColors{p.color, 1})
+			catsColorsCounter = append(catsColorsCounter, catsColors{p.Color, 1})
 		} else {
 			for i, val := range catsColorsCounter {
-				if val.color == p.color {
+				if val.color == p.Color {
 					catsColorsCounter[i].count = val.count + 1
 					break
 				}
 				if i == len(catsColorsCounter)-1 {
-					catsColorsCounter = append(catsColorsCounter, catsColors{p.color, 1})
+					catsColorsCounter = append(catsColorsCounter, catsColors{p.Color, 1})
 				}
 			}
 		}
-		tailsLengths = append(tailsLengths, p.tailLength)
-		whiskersLengths = append(whiskersLengths, p.whiskersLength)
+		tailsLengths = append(tailsLengths, p.TailLength)
+		whiskersLengths = append(whiskersLengths, p.WhiskersLength)
 	}
 	log.Println(catsColorsCounter)
 	// Write the result to the db
@@ -144,7 +145,7 @@ func getCats(db *sql.DB) []cat {
 	var cats []cat
 	for rows.Next() {
 		p := cat{}
-		err := rows.Scan(&p.name, &p.color, &p.tailLength, &p.whiskersLength)
+		err := rows.Scan(&p.Name, &p.Color, &p.TailLength, &p.WhiskersLength)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -249,11 +250,12 @@ func cats(w http.ResponseWriter, req *http.Request) {
 	// JSON output doesn't work
 	catsList := getCats(database)
 	for _, cat := range catsList {
-		c, err := json.Marshal(&cat)
+		c, err := json.MarshalIndent(cat, " ", "\t")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Panic(err)
 		}
+		c = bytes.Replace(c, []byte("\\u0026"), []byte("&"), -1)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(c)
 	}
