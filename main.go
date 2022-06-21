@@ -137,8 +137,15 @@ func getData(db *sql.DB) {
 	stats(tailsLengths, whiskersLengths, db)
 }
 
-func getCats(db *sql.DB) []cat {
-	rows, err := db.Query("select * from cats")
+func getCats(db *sql.DB, offset string, limit string) []cat {
+	if offset != "" {
+		offset = " OFFSET " + offset
+	}
+	if limit != "" {
+		limit = " LIMIT " + limit
+	}
+	q := fmt.Sprintf("select * from cats%s%s", offset, limit)
+	rows, err := db.Query(q)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -247,8 +254,9 @@ func ping(w http.ResponseWriter, req *http.Request) {
 }
 
 func cats(w http.ResponseWriter, req *http.Request) {
-	// JSON output doesn't work
-	catsList := getCats(database)
+	offset := req.URL.Query().Get("offset")
+	limit := req.URL.Query().Get("limit")
+	catsList := getCats(database, offset, limit)
 	for _, cat := range catsList {
 		c, err := json.MarshalIndent(cat, " ", "\t")
 		if err != nil {
