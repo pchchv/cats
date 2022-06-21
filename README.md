@@ -2,6 +2,10 @@
 ```
 docker-compose up --build
 ```
+### Running a database for development
+```
+bash run.sh
+```
 ### Params for ```.env``` file
 ```
 HOST=localhost
