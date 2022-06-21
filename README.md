@@ -6,6 +6,20 @@ docker-compose up --build
 ```
 bash run.sh
 ```
+### HTTP Methods
+```
+/ping — Checking the server connection
+```
+```
+/cats — Getting a list of cats in JSON format
+options: 
+    attribute — Which key to sort by
+    order — asc or desc
+    offset — Skip a specified amount of records
+    limit — Output the specified number of records
+    
+example: http://localhost:8080/cats?attribute=color&order=asc&offset=5&limit=2
+```
 ### Params for ```.env``` file
 ```
 HOST=localhost
