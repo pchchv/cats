@@ -81,7 +81,9 @@ func pingDB(db *sql.DB) {
 				log.Panic(err)
 			}
 			log.Println("Try reconnect..")
-			connectToDB()
+			db = connectToDB()
+		} else {
+			break
 		}
 	}
 	log.Println("Connected to Postgres")
