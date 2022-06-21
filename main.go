@@ -83,7 +83,7 @@ func pingDB(db *sql.DB) {
 			if i == 16 {
 				log.Panic(err)
 			}
-			log.Println("Try reconnect..")
+			log.Println("Try reconnect...")
 			db = connectToDB()
 		} else {
 			break
@@ -181,7 +181,7 @@ func colors(catsColorsCounter []catsColors, db *sql.DB) {
 		var count = fmt.Sprint(val.count)
 		_, err := db.Exec("Insert into cat_colors_info (color, count) values ($1, $2)",
 			color,
-			count)ATTRIBUTE
+			count)
 		if err != nil {
 			log.Panic(err)
 		}
