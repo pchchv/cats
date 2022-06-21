@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
-	"github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
 	"sort"
+	"strings"
+
+	"github.com/joho/godotenv"
+	"github.com/lib/pq"
 )
 
 type cat struct {
@@ -137,14 +139,25 @@ func getData(db *sql.DB) {
 	stats(tailsLengths, whiskersLengths, db)
 }
 
-func getCats(db *sql.DB, offset string, limit string) []cat {
+func getCats(
+	db *sql.DB,
+	offset string,
+	limit string,
+	attribute string,
+	order string) []cat {
 	if offset != "" {
 		offset = " OFFSET " + offset
 	}
 	if limit != "" {
 		limit = " LIMIT " + limit
 	}
-	q := fmt.Sprintf("select * from cats%s%s", offset, limit)
+	if attribute != "" {
+		attribute = " ORDER BY " + attribute
+	}
+	if order != "" {
+		order = " " + strings.ToUpper(order)
+	}
+	q := fmt.Sprintf("select * from cats%s%s%s%s", offset, limit, attribute, order)
 	rows, err := db.Query(q)
 	if err != nil {
 		log.Panic(err)
@@ -168,7 +181,7 @@ func colors(catsColorsCounter []catsColors, db *sql.DB) {
 		var count = fmt.Sprint(val.count)
 		_, err := db.Exec("Insert into cat_colors_info (color, count) values ($1, $2)",
 			color,
-			count)
+			count)ATTRIBUTE
 		if err != nil {
 			log.Panic(err)
 		}
@@ -256,7 +269,9 @@ func ping(w http.ResponseWriter, req *http.Request) {
 func cats(w http.ResponseWriter, req *http.Request) {
 	offset := req.URL.Query().Get("offset")
 	limit := req.URL.Query().Get("limit")
-	catsList := getCats(database, offset, limit)
+	order := req.URL.Query().Get("order")
+	attribute := req.URL.Query().Get("attribute")
+	catsList := getCats(database, offset, limit, attribute, order)
 	for _, cat := range catsList {
 		c, err := json.MarshalIndent(cat, " ", "\t")
 		if err != nil {
