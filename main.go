@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/lib/pq"
@@ -246,29 +245,19 @@ func ping(w http.ResponseWriter, req *http.Request) {
 }
 
 func cats(w http.ResponseWriter, req *http.Request) {
+	// Need to add output to JSON
 	catsList := getCats(database)
-	/*for _, cat := range catsList {
-		c, err := json.Marshal(cat)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			log.Panic(err)
-		}
-	}*/
-	jsonCats, err := json.Marshal(catsList)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Panic(err)
-	}
-	w.Write(jsonCats)
+	fmt.Fprintf(w, "Cats Service. Version 0.1\n%v", catsList)
 }
 
 func main() {
 	db := connectToDB()
 	defer closeConnect(db)
 	pingDB(db)
-	getData(db)
+	database = db
+	/*getData(db)
 	log.Println(testColors(db))
-	log.Println(testStatistics(db))
+	log.Println(testStatistics(db))*/
 	log.Println("Server started")
 	http.HandleFunc("/ping", ping)
 	http.HandleFunc("/cats", cats)
