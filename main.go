@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/lib/pq"
@@ -12,10 +13,10 @@ import (
 )
 
 type cat struct {
-	name           string `json:"Name"`
-	color          string `json:"Color"`
-	tailLength     int    `json:"Taillength"`
-	whiskersLength int    `json:"WhiskersLength"`
+	name           string `json:"name"`
+	color          string `json:"color"`
+	tailLength     int    `json:"tail_length"`
+	whiskersLength int    `json:"whiskers_length"`
 }
 
 type catsColors struct {
@@ -245,9 +246,17 @@ func ping(w http.ResponseWriter, req *http.Request) {
 }
 
 func cats(w http.ResponseWriter, req *http.Request) {
-	// Need to add output to JSON
+	// JSON output doesn't work
 	catsList := getCats(database)
-	fmt.Fprintf(w, "Cats Service. Version 0.1\n%v", catsList)
+	for _, cat := range catsList {
+		c, err := json.Marshal(&cat)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Panic(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(c)
+	}
 }
 
 func main() {
