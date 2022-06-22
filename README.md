@@ -6,6 +6,10 @@ docker-compose up --build
 ```
 bash run.sh
 ```
+### Running tests (db must be running)
+```
+go test
+```
 ### HTTP Methods
 ```
 /ping — Checking the server connection
