@@ -63,7 +63,6 @@ func testServerPing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	log.Println(string(body))
 	if string(body) != "Cats Service. Version 0.1\n" && string(body) != "Cats Service. Version 0.1" {
 		t.Fatal()
 	}
