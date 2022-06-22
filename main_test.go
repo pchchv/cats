@@ -63,7 +63,23 @@ func testServerPing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(body) != "Cats Service. Version 0.1\n" || string(body) != "Cats Service. Version 0.1" {
+	log.Println(string(body))
+	if string(body) != "Cats Service. Version 0.1\n" && string(body) != "Cats Service. Version 0.1" {
 		t.Fatal()
+	}
+}
+
+func testServer(t *testing.T) {
+	res, err := http.Get(fmt.Sprintf("localhost:8080/cats"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status not OK")
+	}
+	defer res.Body.Close()
+	_, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
