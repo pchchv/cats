@@ -7,29 +7,30 @@ import (
 	"testing"
 )
 
-/*
-func testColors(db *sql.DB) []catsColors {
-	rows, err := db.Query("select * from cat_colors_info")
+func testColors(t *testing.T) {
+	rows, err := database.Query("select * from cat_colors_info")
 	if err != nil {
-		log.Panic(err)
+		t.Fatal(err)
 	}
 	var colors []catsColors
 	for rows.Next() {
 		p := catsColors{}
 		err := rows.Scan(&p.color, &p.count)
 		if err != nil {
-			log.Println(err)
+			t.Error(err)
 			continue
 		}
 		colors = append(colors, p)
 	}
-	return colors
+	if len(colors) == 0 {
+		t.Fatal()
+	}
 }
 
-func testStatistics(db *sql.DB) []catsStats {
-	rows, err := db.Query("select * from cats_stat")
+func testStatistics(t *testing.T) {
+	rows, err := database.Query("select * from cats_stat")
 	if err != nil {
-		log.Panic(err)
+		t.Fatal(err)
 	}
 	var stats []catsStats
 	for rows.Next() {
@@ -42,13 +43,15 @@ func testStatistics(db *sql.DB) []catsStats {
 			&p.whiskersLengthMedian,
 			&p.whiskersLengthMode)
 		if err != nil {
-			log.Println(err)
+			t.Error(err)
 			continue
 		}
 		stats = append(stats, p)
 	}
-	return stats
-}*/
+	if len(stats) == 0 {
+		t.Fatal()
+	}
+}
 
 func testServerPing(t *testing.T) {
 	res, err := http.Get(fmt.Sprintf("localhost:8080/ping"))
