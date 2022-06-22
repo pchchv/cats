@@ -1,12 +1,12 @@
-## Running the application
+# Running the application
 ```
 docker-compose up --build
 ```
-### Running a database for development
+## Running a database for development
 ```
 bash run.sh
 ```
-### Running tests (db must be running)
+## Running tests (db must be running)
 ```
 go test
 ```
