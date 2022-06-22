@@ -37,6 +37,7 @@ type catsStats struct {
 }
 
 var database *sql.DB
+var client *http.Client
 
 func init() {
 	// Load values from .env into the system
@@ -289,9 +290,11 @@ func main() {
 	defer closeConnect(db)
 	pingDB(db)
 	database = db
-	/*getData(db)
-	log.Println(testColors(db))
-	log.Println(testStatistics(db))*/
+	//getData(db)
+	tr := &http.Transport{
+		MaxConnsPerHost: 600, // Limiting the number of connections
+	}
+	client = &http.Client{Transport: tr}
 	log.Println("Server started")
 	http.HandleFunc("/ping", ping)
 	http.HandleFunc("/cats", cats)
