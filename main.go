@@ -5,14 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/joho/godotenv"
+	"github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
 	"sort"
 	"strings"
-
-	"github.com/joho/godotenv"
-	"github.com/lib/pq"
 )
 
 type cat struct {
@@ -134,7 +133,6 @@ func getData(db *sql.DB) {
 		tailsLengths = append(tailsLengths, p.TailLength)
 		whiskersLengths = append(whiskersLengths, p.WhiskersLength)
 	}
-	log.Println(catsColorsCounter)
 	// Write the result to the db
 	colors(catsColorsCounter, db)
 	stats(tailsLengths, whiskersLengths, db)
@@ -288,9 +286,9 @@ func cats(w http.ResponseWriter, req *http.Request) {
 func main() {
 	db := connectToDB()
 	defer closeConnect(db)
-	pingDB(db)
 	database = db
-	//getData(db)
+	pingDB(db)
+	getData(db)
 	tr := &http.Transport{
 		MaxConnsPerHost: 600, // Limiting the number of connections
 	}
