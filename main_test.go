@@ -100,12 +100,28 @@ func TestServer(t *testing.T) {
 	}
 }
 
-func TestLoad(t *testing.T) {
+func TestLoadPing(t *testing.T) {
 	rate := vegeta.Rate{Freq: 1000, Per: time.Second}
 	duration := 5 * time.Second
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
 		URL:    "http://localhost:8080/ping",
+	})
+	attacker := vegeta.NewAttacker()
+	var metrics vegeta.Metrics
+	for res := range attacker.Attack(targeter, rate, duration, "Big Bang!") {
+		metrics.Add(res)
+	}
+	metrics.Close()
+	log.Printf("99th percentile: %s\n", metrics.Latencies.P99)
+}
+
+func TestLoadCats(t *testing.T) {
+	rate := vegeta.Rate{Freq: 1000, Per: time.Second}
+	duration := 5 * time.Second
+	targeter := vegeta.NewStaticTargeter(vegeta.Target{
+		Method: "GET",
+		URL:    "http://localhost:8080/cats?offset=7&limit=1",
 	})
 	attacker := vegeta.NewAttacker()
 	var metrics vegeta.Metrics
