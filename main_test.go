@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"testing"
+	"time"
 )
 
 // !!!The commented don't pass!!!
@@ -95,4 +98,20 @@ func TestServer(t *testing.T) {
 		}
 		res.Body.Close()
 	}
+}
+
+func TestLoad(t *testing.T) {
+	rate := vegeta.Rate{Freq: 1000, Per: time.Second}
+	duration := 5 * time.Second
+	targeter := vegeta.NewStaticTargeter(vegeta.Target{
+		Method: "GET",
+		URL:    "http://localhost:8080/ping",
+	})
+	attacker := vegeta.NewAttacker()
+	var metrics vegeta.Metrics
+	for res := range attacker.Attack(targeter, rate, duration, "Big Bang!") {
+		metrics.Add(res)
+	}
+	metrics.Close()
+	log.Printf("99th percentile: %s\n", metrics.Latencies.P99)
 }
