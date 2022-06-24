@@ -2,17 +2,18 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"testing"
 	"time"
 )
 
-// !!!The commented don't pass!!!
-/*func TestColors(t *testing.T) {
+func TestColors(t *testing.T) {
 	rows, err := database.Query("select * from cat_colors_info")
 	if err != nil {
 		t.Fatal(err)
@@ -56,7 +57,7 @@ func TestStatistics(t *testing.T) {
 	if len(stats) == 0 {
 		t.Fatal()
 	}
-}*/
+}
 
 func TestServerPing(t *testing.T) {
 	res, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/ping"))
@@ -82,9 +83,9 @@ func TestServer(t *testing.T) {
 		"?attribute=color&order=desc",
 		"?offset=7",
 		"?limit=4",
-		"?offset=5&limit=2"}
-	// "?limit=3&attribute=color"}
-	// "?attribute=color&order=asc&offset=5&limit=2"}
+		"?offset=5&limit=2",
+		"?limit=3&attribute=color",
+		"?attribute=color&order=asc&offset=5&limit=2"}
 	for _, v := range params {
 		res, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/cats" + v))
 		if err != nil {
@@ -134,7 +135,7 @@ func TestLoadCats(t *testing.T) {
 }
 
 func TestPostIncorrect(t *testing.T) {
-	url := "http://127.0.0.1:8080/cat/"
+	url := "http://127.0.0.1:8080/cat"
 	var jsonStr = []byte(`{"name": "Tihon", "color": "red & white", "tail_length": "15", "whiskers_length": "12"}`)
 	res, err := http.Post(url, "application/json", bytes.NewBuffer(jsonStr))
 	if err != nil {
@@ -144,13 +145,26 @@ func TestPostIncorrect(t *testing.T) {
 		t.Errorf("status OK but data is incorrect")
 	}
 	res.Body.Close()
-	/*req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	req.Header.Set("X-Custom-Header", "myvalue")
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
+}
+
+func TestPostCorrect(t *testing.T) {
+	url := "http://127.0.0.1:8080/cat"
+	names := []string{"Barsik", "John", "Murka", "Marfa"}
+	colors := []string{"black", "white", "black & white", "red", "red & white", "red & black & white"}
+	name := names[rand.Intn(3)]
+	color := colors[rand.Intn(5)]
+	tl := rand.Intn(21)
+	wl := rand.Intn(19)
+	v := cat{name, color, tl, wl}
+	b := new(bytes.Buffer)
+	json.NewEncoder(b).Encode(v)
+	res, err := http.Post(url, "application/json", b)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
-	defer resp.Body.Close()*/
+	log.Println(res.StatusCode)
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status not OK")
+	}
+	res.Body.Close()
 }
