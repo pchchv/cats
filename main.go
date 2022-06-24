@@ -283,6 +283,25 @@ func cats(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func addCat(w http.ResponseWriter, req *http.Request) {
+	decoder := json.NewDecoder(req.Body)
+	var c cat
+	err := decoder.Decode(&c)
+	if err != nil {
+		log.Panic(err)
+	}
+	_, err = database.Exec("Insert into cats (name, color, tail_length, whiskers_length) values ($1, $2, $3, $4)",
+		c.Name,
+		c.Color,
+		c.TailLength,
+		c.WhiskersLength)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Panic(err)
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
 	db := connectToDB()
 	defer closeConnect(db)
@@ -296,5 +315,6 @@ func main() {
 	log.Println("Server started")
 	http.HandleFunc("/ping", ping)
 	http.HandleFunc("/cats", cats)
+	http.HandleFunc("/cat", addCat)
 	log.Fatal(http.ListenAndServe("localhost:8080", nil))
 }
