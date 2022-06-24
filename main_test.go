@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"io/ioutil"
@@ -130,4 +131,26 @@ func TestLoadCats(t *testing.T) {
 	}
 	metrics.Close()
 	log.Printf("99th percentile: %s\n", metrics.Latencies.P99)
+}
+
+func TestPostIncorrect(t *testing.T) {
+	url := "http://127.0.0.1:8080/cat/"
+	var jsonStr = []byte(`{"name": "Tihon", "color": "red & white", "tail_length": "15", "whiskers_length": "12"}`)
+	res, err := http.Post(url, "application/json", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode == http.StatusOK {
+		t.Errorf("status OK but data is incorrect")
+	}
+	res.Body.Close()
+	/*req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()*/
 }
